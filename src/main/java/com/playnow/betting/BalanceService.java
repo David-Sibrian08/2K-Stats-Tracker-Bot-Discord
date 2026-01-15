@@ -1,4 +1,4 @@
-package com.betting;
+package com.playnow.betting;
 
 public class BalanceService {
 

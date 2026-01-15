@@ -1,10 +1,11 @@
 package com.playnow.db;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Tiny SQLite helper:
@@ -27,7 +28,7 @@ public class Db {
     }
 
     /** Open a connection. Callers should use try-with-resources. */
-    public Connection open() throws Exception {
+    public Connection open() throws SQLException, IOException {
         ensureDataDir();
         return DriverManager.getConnection(jdbcUrl);
     }
@@ -133,10 +134,53 @@ CREATE TABLE IF NOT EXISTS bet_bets (
         }
     }
 
-    private static void ensureDataDir() throws Exception {
+    private static void ensureDataDir() throws IOException {
         Path dataDir = Path.of("data");
         if (!Files.exists(dataDir)) {
             Files.createDirectories(dataDir);
         }
+    }
+
+    public Integer getLatestDraftGameId() {
+        String sql = """
+        SELECT id
+        FROM games
+        WHERE status = 'DRAFT'
+        ORDER BY id DESC
+        LIMIT 1
+    """;
+
+        try (Connection c = open();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) return rs.getInt("id");
+            return null;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Map<Integer, String> getPlayerIdToGamertagMap() {
+        String sql = "SELECT id, gamertag FROM players";
+        Map<Integer, String> map = new HashMap<>();
+
+        try (Connection c = open();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                map.put(rs.getInt("id"), rs.getString("gamertag"));
+            }
+
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+        }
+
+        return map;
     }
 }

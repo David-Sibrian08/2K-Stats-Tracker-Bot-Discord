@@ -1,5 +1,6 @@
 package com.playnow;
 
+import com.playnow.betting.PropsListener;
 import com.playnow.db.Db;
 import com.playnow.game.*;
 import com.playnow.leaderboard.LeaderboardListener;
@@ -47,7 +48,8 @@ public class BotMain {
                         new GameUnfinalizeListener(db),
                         new GameListListener(db),
                         new LeaderboardListener(db),
-                        new GameOcrListener(db)
+                        new GameOcrListener(db),
+                        new PropsListener(db)
                 )
                 .build();
 
@@ -64,11 +66,11 @@ public class BotMain {
         // Register slash commands (guild-only)
         guild.updateCommands()
                 .addCommands(
-                        Commands.slash("ping", "Is the bot alive?"),
                         Commands.slash("leaderboard", "Show everyone on the leaderboard"),
                         buildPlayerCommand(),
                         buildGameCommand(),
-                        buildStatCommand()
+                        buildStatCommand(),
+                        buildPropCommand()
                 )
                 .queue();
 
@@ -157,5 +159,9 @@ public class BotMain {
                                 .addOption(OptionType.INTEGER, "ftm", "FT made", true)
                                 .addOption(OptionType.INTEGER, "fta", "FT attempts", true)
                 );
+    }
+
+    private static net.dv8tion.jda.api.interactions.commands.build.SlashCommandData buildPropCommand() {
+        return Commands.slash("props", "Show available betting props for the latest DRAFT game");
     }
 }
