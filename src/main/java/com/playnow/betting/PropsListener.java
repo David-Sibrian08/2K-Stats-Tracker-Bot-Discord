@@ -44,7 +44,7 @@ public class PropsListener extends ListenerAdapter {
             return;
         }
 
-        Map<Long, String> playerNames = loadPlayerNames();
+        Map<Integer, String> playerNames = loadPlayerNames();
 
         event.reply(formatMarkets(gameId, markets, playerNames)).queue();
     }
@@ -67,20 +67,20 @@ public class PropsListener extends ListenerAdapter {
         }
     }
 
-    private Map<Long, String> loadPlayerNames() {
+    private Map<Integer, String> loadPlayerNames() {
         String sql = "SELECT id, gamertag FROM players";
-        Map<Long, String> map = new HashMap<>();
+        Map<Integer, String> map = new HashMap<>();
         try (Connection c = db.open();
              PreparedStatement ps = c.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) map.put(rs.getLong(1), rs.getString(2));
+            while (rs.next()) map.put(rs.getInt(1), rs.getString(2));
         } catch (Exception e) {
             e.printStackTrace();
         }
         return map;
     }
 
-    private String formatMarkets(long gameId, List<BetMarket> markets, Map<Long, String> playerNames) {
+    private String formatMarkets(int gameId, List<BetMarket> markets, Map<Integer, String> playerNames) {
         Map<String, List<BetMarket>> byStat = new HashMap<>();
         for (BetMarket m : markets) byStat.computeIfAbsent(m.stat(), k -> new ArrayList<>()).add(m);
 
@@ -95,7 +95,7 @@ public class PropsListener extends ListenerAdapter {
             if (list == null || list.isEmpty()) continue;
 
             sb.append("**").append(stat).append("**\n");
-            list.sort(Comparator.comparingLong(BetMarket::playerId));
+            list.sort(Comparator.comparingInt(BetMarket::playerId));
             for (BetMarket m : list) {
                 String name = playerNames.getOrDefault(m.playerId(), "Player#" + m.playerId());
                 sb.append("• `[").append(m.id()).append("]` ")
